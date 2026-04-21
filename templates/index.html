@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Search — Germany &amp; Austria</title>
+<style>
+  :root{--pri:#1a73e8;--pri2:#1557b0;--bg:#f5f7fa;--card:#fff;--bdr:#dde1e6;--txt:#1d1d1f;--mut:#6e6e73;--r:8px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+  .hdr{background:var(--card);border-bottom:1px solid var(--bdr);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .hdr h1{font-size:17px;font-weight:700}
+  .badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+  .badge-ok{background:#dcfce7;color:#166534}.badge-err{background:#fee2e2;color:#991b1b}
+  .hdr-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .hdr-r label{font-size:11px;color:var(--mut);font-weight:600}
+  .hdr-r input{width:220px;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px}
+  .ctoggle{display:flex;justify-content:center;padding:12px 20px 0}
+  .cbtn{padding:8px 32px;font-size:14px;font-weight:600;border:2px solid var(--bdr);background:var(--card);cursor:pointer}
+  .cbtn:first-child{border-radius:var(--r) 0 0 var(--r)}.cbtn:last-child{border-radius:0 var(--r) var(--r) 0}
+  .cbtn.a-de{background:#000;color:#fc0;border-color:#000}.cbtn.a-at{background:#c8102e;color:#fff;border-color:#c8102e}
+  .src{text-align:center;padding:6px;font-size:11px;color:var(--mut)}
+  .filters{background:var(--card);margin:8px 20px;padding:14px 16px;border-radius:var(--r);border:1px solid var(--bdr)}
+  .frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.frow+.frow{margin-top:8px}
+  .fg{display:flex;flex-direction:column;gap:2px}
+  .fg label{font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+  .fg input,.fg select{padding:6px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px}
+  .btn{padding:6px 16px;border:none;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer}
+  .bp{background:var(--pri);color:#fff}.bp:hover{background:var(--pri2)}
+  .be{background:#16a34a;color:#fff}.be:hover{background:#15803d}
+  .at-f{display:none}.at-f.show{display:flex}.de-f{display:flex}.de-f.hide{display:none}
+  .res{margin:0 20px 20px}.ri{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .ri span{font-size:11px;color:var(--mut)}
+  .tw{overflow-x:auto;border:1px solid var(--bdr);border-radius:var(--r);background:var(--card)}
+  table{width:100%;border-collapse:collapse;white-space:nowrap}
+  th{background:#f0f2f5;text-align:left;padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);position:sticky;top:0}
+  td{padding:6px 10px;font-size:12px;border-top:1px solid var(--bdr);max-width:300px;overflow:hidden;text-overflow:ellipsis}
+  tr.ck:hover{background:#f0f4ff;cursor:pointer}
+  .sb{display:inline-block;padding:1px 6px;border-radius:10px;font-size:10px;font-weight:600}
+  .sb-g{background:#dcfce7;color:#166534}.sb-r{background:#fee2e2;color:#991b1b}.sb-y{background:#f3f4f6;color:#374151}
+  .nace-tag{display:inline-block;padding:1px 6px;border-radius:10px;font-size:10px;font-weight:600;background:#ede9fe;color:#5b21b6;margin:1px 2px}
+  .pg{display:flex;justify-content:center;gap:4px;margin-top:10px}
+  .pg button{padding:4px 12px;border:1px solid var(--bdr);background:var(--card);border-radius:var(--r);cursor:pointer;font-size:11px}
+  .pg button:disabled{opacity:.4;cursor:default}.pg button.ap{background:var(--pri);color:#fff;border-color:var(--pri)}
+  .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;overflow-y:auto}
+  .ov.open{display:flex;justify-content:center;padding:24px 16px}
+  .pnl{background:var(--card);width:920px;max-width:100%;border-radius:12px;padding:20px;position:relative;align-self:flex-start}
+  .pnl h2{font-size:17px;padding-right:36px}.pnl .sub{font-size:11px;color:var(--mut);margin-bottom:12px}
+  .sec{margin-top:14px}.sec h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid var(--bdr)}
+  .grd{display:grid;grid-template-columns:160px 1fr;gap:3px 10px;font-size:12px}
+  .grd dt{font-weight:600;color:var(--mut)}.grd dd{word-break:break-word}
+  .xbtn{position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--mut)}.xbtn:hover{color:var(--txt)}
+  .tabs{display:flex;margin-top:14px;border-bottom:2px solid var(--bdr)}
+  .tab{padding:5px 14px;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--mut);background:none;border-top:none;border-left:none;border-right:none}
+  .tab.active{color:var(--pri);border-bottom-color:var(--pri)}
+  .tc{display:none;padding-top:8px}.tc.active{display:block}
+  .it{width:100%;font-size:11px;white-space:nowrap}.it th{font-size:9px;padding:4px 6px}.it td{padding:4px 6px;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+  .jb{background:#f8f9fa;border:1px solid var(--bdr);border-radius:var(--r);padding:10px;font-family:'SF Mono',Monaco,monospace;font-size:11px;max-height:350px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+  .obj-text{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r);padding:10px;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow-y:auto}
+  .sp{display:inline-block;width:14px;height:14px;border:2px solid var(--bdr);border-top-color:var(--pri);border-radius:50%;animation:spin .6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}.em{text-align:center;padding:24px;color:var(--mut);font-size:12px}.lr td{text-align:center;padding:24px;color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>Company Search</h1>
+  <span class="badge badge-err" id="dbB">…</span>
+  <div class="hdr-r"><label>Austria API Key:</label><input type="password" id="apiK" placeholder="X-API-KEY for JustizOnline"></div>
+</div>
+<div class="ctoggle">
+  <button class="cbtn a-de" id="bDE" onclick="setC('de')">Germany</button>
+  <button class="cbtn" id="bAT" onclick="setC('at')">Austria</button>
+</div>
+<div class="src" id="srcI">Handelsregister.db — 2.2M companies with business purpose text. NACE codes auto-classified from Unternehmensgegenstand.</div>
+
+<div class="filters">
+  <div class="frow">
+    <div class="fg"><label>Company Name</label><input type="text" id="fQ" placeholder="Search… (optional if NACE selected)" style="min-width:220px"></div>
+    <div class="fg de-f"><label>NACE Industry Code</label>
+      <select id="fNACE" style="min-width:300px"><option value="">All industries (search by name)</option></select>
+    </div>
+    <div class="fg at-f"><label>Legal Form</label>
+      <select id="fRF"><option value="">All</option><option value="GMBH">GmbH</option><option value="AG">AG</option><option value="KG">KG</option><option value="OG">OG</option><option value="EINZELUNTERNEHMEN">Einzelunternehmen</option><option value="VEREIN">Verein</option><option value="GENOSSENSCHAFT">Genossenschaft</option><option value="STIFTUNG">Stiftung</option><option value="SE">SE</option></select>
+    </div>
+    <div class="fg at-f"><label>Match</label>
+      <select id="fExact"><option value="false">Fuzzy</option><option value="true">Exact</option></select>
+    </div>
+    <button class="btn bp" onclick="doSearch(1)">Search</button>
+    <button class="btn be" onclick="doExport()">Export .xlsx</button>
+  </div>
+</div>
+
+<div class="res">
+  <div class="ri"><span id="rCnt"></span><span id="pI"></span></div>
+  <div class="tw" id="deTW">
+    <table><thead><tr>
+      <th>Name</th><th>NACE</th><th>Register #</th><th>Court</th>
+      <th>Address</th><th>City</th><th>Founded</th><th>Capital</th>
+      <th>Business Purpose</th>
+    </tr></thead><tbody id="deB"><tr><td colspan="9" class="em">Search by company name or select a NACE industry code</td></tr></tbody></table>
+  </div>
+  <div class="tw" id="atTW" style="display:none">
+    <table><thead><tr><th>Company Name</th><th>FN Number</th><th>Legal Form</th><th>Court</th><th>Status</th><th>Other</th></tr></thead>
+    <tbody id="atB"><tr><td colspan="6" class="em">Enter a company name and click Search</td></tr></tbody></table>
+  </div>
+  <div class="pg" id="pgC"></div>
+</div>
+
+<div class="ov" id="ov" onclick="if(event.target===this)closeDtl()">
+  <div class="pnl">
+    <button class="xbtn" onclick="closeDtl()">&times;</button>
+    <h2 id="dN">Loading…</h2>
+    <div class="sub" id="dS"></div>
+    <div class="sec"><h3>Company Details</h3><dl class="grd" id="dG"></dl></div>
+    <div class="sec" id="objSec" style="display:none"><h3>Business Purpose (Unternehmensgegenstand)</h3><div class="obj-text" id="objText"></div></div>
+    <div class="sec" id="naceSec" style="display:none"><h3>NACE Classification (auto-detected)</h3><div id="naceDisp"></div></div>
+    <div class="tabs">
+      <button class="tab active" data-tab="off" onclick="stab('off')">Officers</button>
+      <button class="tab" data-tab="names" onclick="stab('names')">Names History</button>
+      <button class="tab" data-tab="addr" onclick="stab('addr')">Addresses</button>
+      <button class="tab" data-tab="cap" onclick="stab('cap')">Capital</button>
+      <button class="tab" data-tab="raw" onclick="stab('raw')">Raw JSON</button>
+    </div>
+    <div class="tc active" id="tab-off"><div id="offC"><span class="sp"></span></div></div>
+    <div class="tc" id="tab-names"><div id="namesC"></div></div>
+    <div class="tc" id="tab-addr"><div id="addrC"></div></div>
+    <div class="tc" id="tab-cap"><div id="capC"></div></div>
+    <div class="tc" id="tab-raw"><div class="jb" id="rawC"></div></div>
+  </div>
+</div>
+
+<script>
+let CC='de',PG=1,TOT=0,PGS=1;
+const aK=document.getElementById('apiK');
+aK.value=localStorage.getItem('at_api_key')||'';
+aK.addEventListener('change',()=>localStorage.setItem('at_api_key',aK.value));
+function gK(){return aK.value.trim()}
+
+// Load NACE codes into dropdown
+fetch('/api/nace').then(r=>r.json()).then(codes=>{
+  const sel=document.getElementById('fNACE');
+  Object.entries(codes).forEach(([code,label])=>{
+    const o=document.createElement('option');
+    o.value=code;o.textContent=`${code} — ${label}`;
+    sel.appendChild(o);
+  });
+});
+
+fetch('/api/db-status').then(r=>r.json()).then(d=>{
+  const b=document.getElementById('dbB');
+  if(d.norm_exists){b.textContent=`DB: ${d.norm_size_mb}MB + objectives`;b.className='badge badge-ok'}
+  else if(d.flat_exists){b.textContent=`DB: ${d.flat_size_mb}MB (no objectives)`;b.className='badge badge-ok'}
+  else{b.textContent='DB missing';b.className='badge badge-err'}
+}).catch(()=>{});
+
+function setC(c){
+  CC=c;
+  document.getElementById('bDE').className=c==='de'?'cbtn a-de':'cbtn';
+  document.getElementById('bAT').className=c==='at'?'cbtn a-at':'cbtn';
+  document.getElementById('deTW').style.display=c==='de'?'':'none';
+  document.getElementById('atTW').style.display=c==='at'?'':'none';
+  document.querySelectorAll('.at-f').forEach(e=>e.classList.toggle('show',c==='at'));
+  document.querySelectorAll('.de-f').forEach(e=>e.classList.toggle('hide',c==='at'));
+  document.getElementById('srcI').textContent=c==='de'
+    ?'Handelsregister.db — 2.2M companies with business purpose text. NACE codes auto-classified from Unternehmensgegenstand.'
+    :'Austrian Firmenbuch HVD — SOAP API via JustizOnline (requires X-API-KEY).';
+  document.getElementById('rCnt').textContent='';document.getElementById('pI').textContent='';document.getElementById('pgC').innerHTML='';
+}
+
+function E(s){if(!s)return'';const d=document.createElement('div');d.textContent=String(s);return d.innerHTML}
+function naceTags(codes){if(!codes||!codes.length)return'<span style="color:#9ca3af;font-size:11px">—</span>';return codes.map(c=>`<span class="nace-tag">${c.code} ${c.label}</span>`).join(' ')}
+
+async function doSearch(p){
+  PG=p;
+  const q=document.getElementById('fQ').value.trim();
+  const nace=CC==='de'?document.getElementById('fNACE').value:'';
+  if(!q&&!nace){alert('Enter a company name or select a NACE code.');return}
+  CC==='de'?await sDE(q,nace,p):await sAT(q);
+}
+
+async function sDE(q,nace,p){
+  const tb=document.getElementById('deB');
+  tb.innerHTML='<tr class="lr"><td colspan="9"><span class="sp"></span> Searching…</td></tr>';
+  document.getElementById('rCnt').textContent='';document.getElementById('pgC').innerHTML='';
+  const ps=new URLSearchParams({country:'de',q,page:p,per_page:30,nace});
+  try{
+    const r=await fetch('/api/search?'+ps);const d=await r.json();
+    if(d.error){tb.innerHTML=`<tr><td colspan="9" class="em">${E(d.error)}</td></tr>`;return}
+    TOT=d.total||0;PGS=Math.ceil(TOT/30);
+    document.getElementById('rCnt').textContent=`${TOT.toLocaleString()} companies`;
+    document.getElementById('pI').textContent=`Page ${PG} of ${PGS}`;
+    const cs=d.companies||[];
+    if(!cs.length){tb.innerHTML='<tr><td colspan="9" class="em">No results.</td></tr>';return}
+    tb.innerHTML=cs.map(c=>`<tr class="ck" onclick="openDE('${E(c.companyId)}')">
+      <td><strong>${E(c.name)}</strong></td>
+      <td>${naceTags(c.nace_codes)}</td>
+      <td>${E(c.register_number)}</td><td>${E(c.court)}</td>
+      <td title="${E(c.address)}">${E(c.address)}</td><td>${E(c.city)}</td>
+      <td>${E(c.founded)}</td><td>${E(c.capital)}</td>
+      <td title="${E(c.objective)}">${E((c.objective||'').substring(0,80))}${(c.objective||'').length>80?'…':''}</td>
+    </tr>`).join('');
+    rPg();
+  }catch(e){tb.innerHTML=`<tr><td colspan="9" class="em">${E(e.message)}</td></tr>`}
+}
+
+async function sAT(q){
+  const tb=document.getElementById('atB');
+  tb.innerHTML='<tr class="lr"><td colspan="6"><span class="sp"></span> Searching…</td></tr>';
+  const key=gK();
+  if(!key){tb.innerHTML='<tr><td colspan="6" class="em">Enter your X-API-KEY above.</td></tr>';return}
+  const ps=new URLSearchParams({country:'at',q,api_key:key,rechtsform:document.getElementById('fRF').value,exact:document.getElementById('fExact').value});
+  try{
+    const r=await fetch('/api/search?'+ps);const d=await r.json();
+    if(d.error){tb.innerHTML=`<tr><td colspan="6" class="em">${E(d.error)}</td></tr>`;return}
+    const entries=xAT(d);
+    document.getElementById('rCnt').textContent=`${entries.length} companies`;
+    if(!entries.length){tb.innerHTML='<tr><td colspan="6" class="em">No results.</td></tr>';return}
+    tb.innerHTML=entries.map((c,i)=>{
+      const nm=c.FIRMENWORTLAUT||c.name||'Company '+(i+1);const fn=c.FN||c.FIRMA_ID||'';
+      const extra=Object.entries(c).filter(([k])=>!['FIRMENWORTLAUT','FN','FIRMA_ID','RECHTSFORM','GERICHT','STATUS','name','fn'].includes(k)).map(([k,v])=>`${k}:${typeof v==='object'?JSON.stringify(v).substring(0,40):v}`).join(' | ');
+      return`<tr class="ck" onclick='openAT("${E(fn)}")'><td><strong>${E(nm)}</strong></td><td>${E(fn)}</td><td>${E(c.RECHTSFORM||'')}</td><td>${E(c.GERICHT||'')}</td><td>${E(c.STATUS||'')}</td><td title="${E(extra)}">${E(extra).substring(0,100)}</td></tr>`}).join('');
+  }catch(e){tb.innerHTML=`<tr><td colspan="6" class="em">${E(e.message)}</td></tr>`}
+}
+
+function xAT(obj){if(Array.isArray(obj))return obj.filter(x=>typeof x==='object');if(typeof obj!=='object'||!obj)return[];for(const v of Object.values(obj)){if(Array.isArray(v)&&v.length&&typeof v[0]==='object')return v;const f=xAT(v);if(f.length)return f}if(obj.FIRMENWORTLAUT||obj.FN||obj.FIRMA_ID)return[obj];return[]}
+
+function rPg(){const c=document.getElementById('pgC');if(CC!=='de'||PGS<=1){c.innerHTML='';return}let h=`<button ${PG<=1?'disabled':''} onclick="doSearch(${PG-1})">Prev</button>`;const s=Math.max(1,PG-3),e=Math.min(PGS,s+6);for(let i=s;i<=e;i++)h+=`<button class="${i===PG?'ap':''}" onclick="doSearch(${i})">${i}</button>`;h+=`<button ${PG>=PGS?'disabled':''} onclick="doSearch(${PG+1})">Next</button>`;c.innerHTML=h}
+function doExport(){const p=new URLSearchParams({country:CC,q:document.getElementById('fQ').value.trim(),nace:CC==='de'?document.getElementById('fNACE').value:''});if(CC==='at')p.set('api_key',gK());window.location.href='/api/export?'+p}
+
+// ── Detail: Germany (normalized) ──
+async function openDE(cid){
+  openOv();
+  try{
+    const r=await fetch(`/api/company/de/${encodeURIComponent(cid)}`);const d=await r.json();
+    if(d.error){document.getElementById('dN').textContent=d.error;return}
+    document.getElementById('dN').textContent=d.name||'Unknown';
+    const ref=d.references?.[0]||{};
+    document.getElementById('dS').textContent=`Germany · ${ref.nativeReferenceNumber||''} · ${ref.courtName||''}`;
+
+    // Company info
+    const comp=d.company||{};
+    const fields=[['Founded',comp.foundedDate],['Dissolved',comp.dissolutionDate],['First Seen',comp.firstSeenDate],['Last Seen',comp.lastSeenDate]];
+    if(d.references?.length)fields.push(['Register',ref.nativeReferenceNumber],['Court',ref.courtName],['Court Code',ref.courtCode]);
+    if(d.addresses?.length){const a=d.addresses[0];fields.push(['Address',a.fullAddress],['City',a.zipAndPlace])}
+    if(d.capital?.length){const c=d.capital[0];fields.push(['Capital',`${c.capitalAmount} ${c.capitalCurrency}`])}
+    document.getElementById('dG').innerHTML=fields.filter(f=>f[1]).map(f=>`<dt>${E(f[0])}</dt><dd>${E(f[1])}</dd>`).join('');
+
+    // Business purpose
+    const objs=d.objectives||[];
+    const objSec=document.getElementById('objSec');
+    if(objs.length){objSec.style.display='';document.getElementById('objText').textContent=objs[0].objective||''}else{objSec.style.display='none'}
+
+    // NACE
+    const naceSec=document.getElementById('naceSec');
+    if(d.nace_codes?.length){naceSec.style.display='';document.getElementById('naceDisp').innerHTML=d.nace_codes.map(n=>`<span class="nace-tag">${n.code} — ${n.label} (score: ${n.score})</span>`).join(' ')}else{naceSec.style.display='none'}
+
+    // Officers
+    const offs=d.officers||[];
+    const oc=document.getElementById('offC');
+    if(!offs.length)oc.innerHTML='<p class="em">No officers.</p>';
+    else{
+      let h='<div style="overflow-x:auto"><table class="it"><thead><tr><th>First Name</th><th>Last Name</th><th>Maiden Name</th><th>Position</th><th>Start</th><th>End</th><th>City</th><th>Birth Date</th></tr></thead><tbody>';
+      for(const o of offs)h+=`<tr><td>${E(o.firstName)}</td><td>${E(o.lastName)}</td><td>${E(o.maidenName)}</td><td>${E(o.foundPosition)}</td><td>${E(o.startDate)}</td><td>${E(o.endDate)}</td><td>${E(o.city)}</td><td>${E(o.birthDate)}</td></tr>`;
+      oc.innerHTML=h+'</tbody></table></div>';
+    }
+
+    // Names history
+    const nms=d.names||[];
+    document.getElementById('namesC').innerHTML=nms.length?'<table class="it"><thead><tr><th>Name</th><th>From</th><th>To</th><th>Current</th></tr></thead><tbody>'+nms.map(n=>`<tr><td>${E(n.name)}</td><td>${E(n.validFrom)}</td><td>${E(n.validTill)}</td><td>${E(n.isCurrent)}</td></tr>`).join('')+'</tbody></table>':'<p class="em">No name history.</p>';
+
+    // Addresses
+    const ads=d.addresses||[];
+    document.getElementById('addrC').innerHTML=ads.length?'<table class="it"><thead><tr><th>Address</th><th>Zip+City</th><th>From</th><th>To</th><th>Current</th></tr></thead><tbody>'+ads.map(a=>`<tr><td>${E(a.fullAddress)}</td><td>${E(a.zipAndPlace)}</td><td>${E(a.validFrom)}</td><td>${E(a.validTill)}</td><td>${E(a.isCurrent)}</td></tr>`).join('')+'</tbody></table>':'<p class="em">No address history.</p>';
+
+    // Capital
+    const caps=d.capital||[];
+    document.getElementById('capC').innerHTML=caps.length?'<table class="it"><thead><tr><th>Amount</th><th>Currency</th><th>From</th><th>To</th><th>Current</th></tr></thead><tbody>'+caps.map(c=>`<tr><td>${E(c.capitalAmount)}</td><td>${E(c.capitalCurrency)}</td><td>${E(c.validFrom)}</td><td>${E(c.validTill)}</td><td>${E(c.isCurrent)}</td></tr>`).join('')+'</tbody></table>':'<p class="em">No capital data.</p>';
+
+    document.getElementById('rawC').textContent=JSON.stringify(d,null,2);
+  }catch(e){document.getElementById('dN').textContent='Error: '+e.message}
+}
+
+// ── Detail: Austria ──
+async function openAT(fn){
+  openOv();const key=gK();
+  if(!key){document.getElementById('dN').textContent='API key required';return}
+  try{
+    const r=await fetch(`/api/company/at/${encodeURIComponent(fn)}?api_key=${encodeURIComponent(key)}`);
+    const d=await r.json();if(d.error){document.getElementById('dN').textContent='Error: '+d.error;return}
+    document.getElementById('dN').textContent=fV(d,'FIRMENWORTLAUT')||fn;
+    document.getElementById('dS').textContent=`Austria · FN ${fn}`;
+    document.getElementById('dG').innerHTML=flatO(d).map(([k,v])=>`<dt>${E(k)}</dt><dd>${E(v)}</dd>`).join('');
+    document.getElementById('objSec').style.display='none';document.getElementById('naceSec').style.display='none';
+    const funs=fV(d,'FUN');const oc=document.getElementById('offC');
+    if(funs&&typeof funs==='object'){const list=Array.isArray(funs)?funs:[funs];if(list.length&&typeof list[0]==='object'){const ak=[...new Set(list.flatMap(o=>Object.keys(o)))];let h='<div style="overflow-x:auto"><table class="it"><thead><tr>'+ak.map(k=>`<th>${E(k)}</th>`).join('')+'</tr></thead><tbody>';for(const o of list)h+='<tr>'+ak.map(k=>`<td>${E(typeof o[k]==='object'?JSON.stringify(o[k]):o[k]||'')}</td>`).join('')+'</tr>';oc.innerHTML=h+'</tbody></table></div>'}else oc.innerHTML='<p class="em">No officers.</p>'}else oc.innerHTML='<p class="em">No officers.</p>';
+    document.getElementById('namesC').innerHTML='<p class="em">Use Raw JSON tab.</p>';
+    document.getElementById('addrC').innerHTML='<p class="em">Use Raw JSON tab.</p>';
+    document.getElementById('capC').innerHTML='<p class="em">Use Raw JSON tab.</p>';
+    document.getElementById('rawC').textContent=JSON.stringify(d,null,2);
+  }catch(e){document.getElementById('dN').textContent='Error: '+e.message}
+}
+
+function openOv(){document.getElementById('ov').classList.add('open');document.getElementById('dN').textContent='Loading…';document.getElementById('dS').textContent='';document.getElementById('dG').innerHTML='';document.getElementById('offC').innerHTML='<span class="sp"></span>';stab('off')}
+function closeDtl(){document.getElementById('ov').classList.remove('open')}
+function stab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.toggle('active',e.dataset.tab===t));document.querySelectorAll('.tc').forEach(e=>e.classList.toggle('active',e.id===`tab-${t}`))}
+function fV(o,k){if(!o||typeof o!=='object')return null;if(k in o)return o[k];for(const v of Object.values(o)){const f=fV(v,k);if(f!==null)return f}return null}
+function flatO(o,pfx='',d=4){const r=[];if(!o||typeof o!=='object'||d<=0)return r;for(const[k,v] of Object.entries(o)){const l=pfx?`${pfx} > ${k}`:k;if(Array.isArray(v))v.forEach((it,i)=>{typeof it==='object'?r.push(...flatO(it,`${l}[${i}]`,d-1)):r.push([`${l}[${i}]`,String(it)])});else if(v&&typeof v==='object')r.push(...flatO(v,l,d-1));else if(v!==null&&v!==''&&v!==undefined)r.push([l,String(v)])}return r}
+document.getElementById('fQ').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch(1)});
+</script>
+</body>
+</html>
