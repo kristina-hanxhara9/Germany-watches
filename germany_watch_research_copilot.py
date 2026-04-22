@@ -26,10 +26,10 @@ Setup:
 Run:
     python germany_watch_research_copilot.py
 
-The agent uses the SDK's built-in `url` fetch tool (no Playwright / no MCP
-server needed). Searches go through DuckDuckGo HTML + direct URLs on
-gelbeseiten.de, northdata.com, handelsregister.de — all of which serve
-plain HTML that the url-fetch tool can read directly.
+The skill has no `tools:` line in its frontmatter, so the agent inherits
+every built-in CLI tool — `web_search`, `web_fetch`, `view`, `edit`, `bash`.
+The skill body tells it to use `web_search` and `web_fetch` explicitly.
+No MCP servers, no Tavily / Brave API keys, no extensions needed.
 """
 
 import asyncio

@@ -29,31 +29,27 @@ When it's genuinely ambiguous, set `classification = "REVIEW"` and explain in `c
 
 ## Tools to use
 
-Use the SDK's built-in URL-fetch tool for every step.
-- Prefer **DuckDuckGo HTML** as the search engine (Google often blocks bots):
-  `https://html.duckduckgo.com/html/?q={url-encoded query}`
-- Also acceptable: **Bing** (`https://www.bing.com/search?q=...`) as a secondary.
-- Direct-URL lookups on these work without search:
-  - Gelbe Seiten:      `https://www.gelbeseiten.de/suche/{company}/{zip}`
-  - Google Maps:       `https://www.google.com/maps/search/{company}+{city}`
-  - Northdata:         `https://www.northdata.com/{company},{city}`
-  - Handelsregister:   `https://www.handelsregister.de/` (use search form parameters)
-Visit the retailer's own website directly once you find it.
+Use the Copilot CLI's built-in tools — no extensions, no API keys.
+- `web_search` for every search step
+- `web_fetch` to read a specific URL (retailer's own site, Gelbe Seiten page, Northdata entry, Handelsregister listing, LinkedIn page)
+- `view` for any local files if needed
+
+For every search: call `web_search` with the query string, then `web_fetch` on the most relevant result URLs to read full content.
 
 ## Search sequence — follow this order every time
 
-1. DuckDuckGo: `"{company_name}" {zip} {city}` → find website, directory listings
-2. Direct: `https://www.gelbeseiten.de/suche/{company_name}/{zip}` → phone, address, hours, categories
-3. Direct: `https://www.google.com/maps/search/{company_name}+{city}` → rating, review count, address, opening hours, category
-4. Company website (visit it) → products, brands carried, repair services offered, about / history, online shop, contact, any turnover / employee info
-5. DuckDuckGo: `"{company_name}" site:northdata.com` → legal entity, turnover, employees, industry codes (WZ 2008 / NACE)
-6. DuckDuckGo: `"{company_name}" site:handelsregister.de` OR `site:unternehmensregister.de` → legal filings, Unternehmensgegenstand
-7. DuckDuckGo: `"{company_name}" Umsatz` OR `"{company_name}" Jahresumsatz` → only record if a real published figure is found
-8. DuckDuckGo: `"{company_name}" Marken Uhren` → watch brands carried (Rolex, Omega, Breitling, Tissot, Seiko, etc.)
-9. DuckDuckGo: `"{company_name}" Schmuck Pandora Thomas Sabo` → check exclusion signals (fashion-accessory dominance)
-10. DuckDuckGo: `"{company_name}" Reparatur Uhrmacher` → check repair-only signals
-11. DuckDuckGo: `"{company_name}" 2024 2025 Nachrichten` → recent news
-12. LinkedIn company page → employee count if shown
+1. `web_search`: `"{company_name}" {zip} {city}` → discover website + directory listings → `web_fetch` each
+2. `web_search`: `"{company_name}" Gelbe Seiten {city}` → then `web_fetch` the gelbeseiten.de page → phone, address, hours, categories
+3. `web_search`: `"{company_name}" {city} Google Maps` → rating, review count, opening hours, category
+4. `web_fetch` the company's own website → products, brands carried, repair services offered, about / history, online shop, contact
+5. `web_search`: `"{company_name}" site:northdata.com` → `web_fetch` → legal entity, turnover, employees, WZ 2008 / NACE code
+6. `web_search`: `"{company_name}" site:handelsregister.de` OR `site:unternehmensregister.de` → legal filings, Unternehmensgegenstand
+7. `web_search`: `"{company_name}" Umsatz` OR `Jahresumsatz` → only record if a real published figure is found
+8. `web_search`: `"{company_name}" Marken Uhren` → watch brands carried (Rolex, Omega, Breitling, Tissot, Seiko, etc.)
+9. `web_search`: `"{company_name}" Schmuck Pandora "Thomas Sabo"` → check exclusion signals (fashion-accessory dominance)
+10. `web_search`: `"{company_name}" Reparatur Uhrmacher` → check repair-only signals
+11. `web_search`: `"{company_name}" 2024 2025 Nachrichten` → recent news
+12. `web_search`: `"{company_name}" LinkedIn` → `web_fetch` the LinkedIn page → employee count if shown
 
 ## Strict rules
 
