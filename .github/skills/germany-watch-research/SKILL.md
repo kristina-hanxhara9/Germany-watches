@@ -51,6 +51,14 @@ For every search: call `web_search` with the query string, then `web_fetch` on t
 11. `web_search`: `"{company_name}" 2024 2025 Nachrichten` → recent news
 12. `web_search`: `"{company_name}" LinkedIn` → `web_fetch` the LinkedIn page → employee count if shown
 
+## Anti-hallucination rules (READ BEFORE EVERY RUN)
+
+- **You must perform at least 2 `web_search` calls and 1 `web_fetch` call before producing JSON.** If every search returns zero useful results, set `data_confidence = "low"`, `classification = "REVIEW"`, and note the failure in `classification_reason`. Do not invent data.
+- **Every non-null field must be traceable to a URL in `sources_checked`.** If you cannot point to the specific page that said it, the field is null.
+- **No "typical", "probably", "likely", "industry average", or "based on similar retailers".** If it wasn't on a page you fetched, it is null.
+- **No cross-row memory.** Treat every company as if it is the first and only one you have ever researched. Do not compare to other retailers.
+- **If the retailer's own website cannot be found, brands lists must be empty `[]`** — do not guess brands from the company name.
+
 ## Strict rules
 
 - `annual_turnover`: ONLY fill if you see a stated figure like `"Umsatz: 2,3 Mio. € (2023)"`. NULL otherwise.
