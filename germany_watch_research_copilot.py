@@ -20,26 +20,16 @@ API notes (matches the real github-copilot-sdk Python docs):
   - `infinite_sessions={"enabled": False}` gives a fully isolated session per row
 
 Setup:
-    # 1. Python deps
     pip install github-copilot-sdk pandas openpyxl
-
-    # 2. GitHub CLI auth (copilot-sdk uses the gh credentials)
-    gh auth login
-
-    # 3. Node + Playwright MCP (REQUIRED — the SDK has NO built-in web search).
-    #    Playwright gives the agent a real browser so the skill can actually
-    #    visit Google / Gelbe Seiten / Google Maps / Northdata.
-    #    Install Node.js 18+, then:
-    npx playwright install chromium      # one-time, downloads the browser
-
-    # 4. Register the Playwright MCP server for the Copilot agent:
-    mkdir -p ~/.copilot
-    cp mcp-config.json ~/.copilot/mcp-config.json
-    #    OR inside `copilot` CLI:  /mcp add
-    #    server type: local, command: npx, args: @playwright/mcp@latest
+    gh auth login          # copilot-sdk uses the gh CLI credentials
 
 Run:
     python germany_watch_research_copilot.py
+
+The agent uses the SDK's built-in `url` fetch tool (no Playwright / no MCP
+server needed). Searches go through DuckDuckGo HTML + direct URLs on
+gelbeseiten.de, northdata.com, handelsregister.de — all of which serve
+plain HTML that the url-fetch tool can read directly.
 """
 
 import asyncio

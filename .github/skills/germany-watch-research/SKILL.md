@@ -29,28 +29,30 @@ When it's genuinely ambiguous, set `classification = "REVIEW"` and explain in `c
 
 ## Tools to use
 
-Use the **Playwright MCP browser** (not plain URL fetch) for every search.
-Google blocks plain HTTP GETs; Gelbe Seiten and Northdata serve JS-rendered pages.
-Workflow for each step:
-  1. `browser_navigate` to the search URL
-  2. `browser_snapshot` to read rendered content
-  3. `browser_click` on the most relevant result
-  4. `browser_snapshot` again to read the landing page
-Fall back to plain URL fetch only if Playwright is unavailable.
+Use the SDK's built-in URL-fetch tool for every step.
+- Prefer **DuckDuckGo HTML** as the search engine (Google often blocks bots):
+  `https://html.duckduckgo.com/html/?q={url-encoded query}`
+- Also acceptable: **Bing** (`https://www.bing.com/search?q=...`) as a secondary.
+- Direct-URL lookups on these work without search:
+  - Gelbe Seiten:      `https://www.gelbeseiten.de/suche/{company}/{zip}`
+  - Google Maps:       `https://www.google.com/maps/search/{company}+{city}`
+  - Northdata:         `https://www.northdata.com/{company},{city}`
+  - Handelsregister:   `https://www.handelsregister.de/` (use search form parameters)
+Visit the retailer's own website directly once you find it.
 
 ## Search sequence — follow this order every time
 
-1. Google: `"{company_name}" {zip} {city}` → find website, directory listings
-2. Google: `"{company_name}" site:gelbeseiten.de` → visit the page → phone, address, hours, categories
-3. Google Maps: `"{company_name}" {city}` → rating, review count, address, opening hours, category
+1. DuckDuckGo: `"{company_name}" {zip} {city}` → find website, directory listings
+2. Direct: `https://www.gelbeseiten.de/suche/{company_name}/{zip}` → phone, address, hours, categories
+3. Direct: `https://www.google.com/maps/search/{company_name}+{city}` → rating, review count, address, opening hours, category
 4. Company website (visit it) → products, brands carried, repair services offered, about / history, online shop, contact, any turnover / employee info
-5. Google: `"{company_name}" site:northdata.com` → legal entity, turnover, employees, industry codes (WZ 2008 / NACE)
-6. Google: `"{company_name}" site:handelsregister.de` OR `site:unternehmensregister.de` → legal filings, Unternehmensgegenstand
-7. Google: `"{company_name}" Umsatz` OR `"{company_name}" Jahresumsatz` → only record if a real published figure is found
-8. Google: `"{company_name}" Marken Uhren` → watch brands carried (Rolex, Omega, Breitling, Tissot, Seiko, etc.)
-9. Google: `"{company_name}" Schmuck Pandora Thomas Sabo` → check exclusion signals (fashion-accessory dominance)
-10. Google: `"{company_name}" Reparatur Uhrmacher` → check repair-only signals
-11. Google: `"{company_name}" 2024 2025 Nachrichten` → recent news
+5. DuckDuckGo: `"{company_name}" site:northdata.com` → legal entity, turnover, employees, industry codes (WZ 2008 / NACE)
+6. DuckDuckGo: `"{company_name}" site:handelsregister.de` OR `site:unternehmensregister.de` → legal filings, Unternehmensgegenstand
+7. DuckDuckGo: `"{company_name}" Umsatz` OR `"{company_name}" Jahresumsatz` → only record if a real published figure is found
+8. DuckDuckGo: `"{company_name}" Marken Uhren` → watch brands carried (Rolex, Omega, Breitling, Tissot, Seiko, etc.)
+9. DuckDuckGo: `"{company_name}" Schmuck Pandora Thomas Sabo` → check exclusion signals (fashion-accessory dominance)
+10. DuckDuckGo: `"{company_name}" Reparatur Uhrmacher` → check repair-only signals
+11. DuckDuckGo: `"{company_name}" 2024 2025 Nachrichten` → recent news
 12. LinkedIn company page → employee count if shown
 
 ## Strict rules
