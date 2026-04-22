@@ -20,8 +20,23 @@ API notes (matches the real github-copilot-sdk Python docs):
   - `infinite_sessions={"enabled": False}` gives a fully isolated session per row
 
 Setup:
+    # 1. Python deps
     pip install github-copilot-sdk pandas openpyxl
-    gh auth login          # (copilot-sdk uses the gh CLI credentials)
+
+    # 2. GitHub CLI auth (copilot-sdk uses the gh credentials)
+    gh auth login
+
+    # 3. Node + Playwright MCP (REQUIRED — the SDK has NO built-in web search).
+    #    Playwright gives the agent a real browser so the skill can actually
+    #    visit Google / Gelbe Seiten / Google Maps / Northdata.
+    #    Install Node.js 18+, then:
+    npx playwright install chromium      # one-time, downloads the browser
+
+    # 4. Register the Playwright MCP server for the Copilot agent:
+    mkdir -p ~/.copilot
+    cp mcp-config.json ~/.copilot/mcp-config.json
+    #    OR inside `copilot` CLI:  /mcp add
+    #    server type: local, command: npx, args: @playwright/mcp@latest
 
 Run:
     python germany_watch_research_copilot.py

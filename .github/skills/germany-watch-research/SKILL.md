@@ -27,6 +27,17 @@ A company must be **excluded** if any of the following is true:
 
 When it's genuinely ambiguous, set `classification = "REVIEW"` and explain in `classification_reason`.
 
+## Tools to use
+
+Use the **Playwright MCP browser** (not plain URL fetch) for every search.
+Google blocks plain HTTP GETs; Gelbe Seiten and Northdata serve JS-rendered pages.
+Workflow for each step:
+  1. `browser_navigate` to the search URL
+  2. `browser_snapshot` to read rendered content
+  3. `browser_click` on the most relevant result
+  4. `browser_snapshot` again to read the landing page
+Fall back to plain URL fetch only if Playwright is unavailable.
+
 ## Search sequence — follow this order every time
 
 1. Google: `"{company_name}" {zip} {city}` → find website, directory listings
