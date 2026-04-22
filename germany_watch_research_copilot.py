@@ -1,24 +1,27 @@
 """
 Germany Watch Retailer Research — GitHub Copilot SDK
 =====================================================
-Adapted from the French research pipeline. Applies the watch-retailer
-definition to every German candidate:
+Applies the watch-retailer definition to every German candidate:
 
-    INCLUDE: sale of watches mandatory AND >=80% turnover from
-             watches / fine jewellery / watch-repair.
-    EXCLUDE: >50% fashion accessories (Pandora, Thomas Sabo, Modeschmuck)
-             OR >50% repair-only with no watch retail
-             OR no watch sales at all.
-    REVIEW:  genuinely ambiguous after web research.
+    INCLUDE : sale of watches mandatory AND >=80% turnover from
+              watches / fine jewellery / watch-repair.
+    EXCLUDE : >50% fashion accessories (Pandora, Thomas Sabo, Modeschmuck)
+              OR >50% repair-only with no watch retail
+              OR no watch sales at all.
+    REVIEW  : genuinely ambiguous after web research.
 
-Architecture (SDK):
-  - Fresh isolated session per row (no context bleed)
-  - infinite_sessions disabled (prevents hallucination carry-over)
-  - skill_directories loads SKILL.md fresh every session
+API notes (matches the real github-copilot-sdk Python docs):
+  - `CopilotClient()` is started with `await client.start()`
+    and stopped with `await client.stop()`
+  - `client.create_session(...)` is awaitable; can be used as an
+    async context manager via `async with await client.create_session(...) as s:`
+  - Prompt + wait-until-idle in one call: `await session.send_and_wait(prompt)`
+  - Event data types are pattern-matched, not string-compared
+  - `infinite_sessions={"enabled": False}` gives a fully isolated session per row
 
 Setup:
     pip install github-copilot-sdk pandas openpyxl
-    gh auth login
+    gh auth login          # (copilot-sdk uses the gh CLI credentials)
 
 Run:
     python germany_watch_research_copilot.py
@@ -27,7 +30,6 @@ Run:
 import asyncio
 import json
 import logging
-import os
 import re
 import time
 from pathlib import Path
@@ -38,16 +40,20 @@ from openpyxl.styles import Alignment, Font, PatternFill
 
 from copilot import CopilotClient
 from copilot.session import PermissionRequestResult
-from copilot.generated.session_events import PermissionRequest
+from copilot.generated.session_events import (
+    PermissionRequest,
+    AssistantMessageData,
+    AssistantMessageDeltaData,
+    SessionIdleData,
+)
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 
-INPUT_FILE  = "watch_retailers_germany.xlsx"          # output of find_watch_retailers.py
-INPUT_SHEET = "INCLUDE"                                 # only enrich the likely-positive sheet
+INPUT_FILE  = "watch_retailers_germany.xlsx"
+INPUT_SHEET = "INCLUDE"
 OUTPUT_FILE = "watch_retailers_germany_enriched.xlsx"
 CHECKPOINT  = "checkpoint_de_watches.json"
 
-# Columns expected in INPUT_FILE (matches find_watch_retailers.py output)
 COL_NAME      = "name"
 COL_ZIP       = "zip"
 COL_CITY      = "city"
@@ -55,21 +61,19 @@ COL_REGISTER  = "register"
 COL_OBJECTIVE = "objective"
 COL_ACTIVE    = "active"
 
-MODEL       = "gpt-5"        # change to claude-sonnet-4-6 if preferred
+MODEL       = "gpt-5"
+STREAMING   = True
 CONCURRENCY = 3
 
-# Skill folder — loaded fresh at start of every session
 SKILL_DIR = str(Path(__file__).parent / ".github" / "skills")
 
-# German WZ 2008 / NACE-style sector hints (not required, but helpful context)
 WZ_SECTORS = {
-    "47.77": "Einzelhandel mit Uhren und Schmuck (Retail sale of watches and jewellery)",
-    "47.78": "Einzelhandel mit sonstigen Gütern a.n.g. in Verkaufsräumen",
-    "47.79": "Einzelhandel mit Antiquitäten und Gebrauchtwaren",
-    "46.48": "Großhandel mit Uhren und Schmuck (Wholesale watches & jewellery)",
-    "95.25": "Reparatur von Uhren und Schmuck (Repair of watches & jewellery)",
-    "32.12": "Herstellung von Schmuck / Goldschmiede",
-    "32.13": "Herstellung von Fantasieschmuck (costume jewellery)",
+    "47.77": "Einzelhandel mit Uhren und Schmuck",
+    "47.78": "Einzelhandel mit sonstigen Gütern a.n.g.",
+    "46.48": "Großhandel mit Uhren und Schmuck",
+    "95.25": "Reparatur von Uhren und Schmuck",
+    "32.12": "Herstellung von Schmuck",
+    "32.13": "Herstellung von Fantasieschmuck",
 }
 
 OUTPUT_FIELDS = [
@@ -96,22 +100,26 @@ log = logging.getLogger(__name__)
 
 
 # ── Permission handler ────────────────────────────────────────────────────────
-# Approve web browsing / reading / MCP. Deny shell + writes for safety.
+# request.kind.value is one of: shell, write, read, mcp, custom-tool, url, memory, hook
+# We approve read / url / mcp / memory (needed for web research) and deny shell + write.
+
+APPROVED_KINDS = {"read", "url", "mcp", "memory", "custom-tool", "hook"}
+
 
 def permission_handler(
     request: PermissionRequest,
     invocation: dict,
 ) -> PermissionRequestResult:
     kind = request.kind.value
-    if kind in ("shell", "write"):
-        return PermissionRequestResult(kind="denied-interactively-by-user")
-    return PermissionRequestResult(kind="approved")
+    if kind in APPROVED_KINDS:
+        return PermissionRequestResult(kind="approved")
+    # shell + write are denied for safety
+    return PermissionRequestResult(kind="denied-interactively-by-user")
 
 
 # ── Prompt ────────────────────────────────────────────────────────────────────
 
 def build_prompt(name: str, zip_code: str, city: str, register: str, objective: str) -> str:
-    # Truncate objective so it doesn't blow up the prompt
     obj = (objective or "").strip().replace("\n", " ")
     if len(obj) > 800:
         obj = obj[:800] + "…"
@@ -156,32 +164,34 @@ async def research_one(
 
     for attempt in range(1, 4):
         try:
-            response_parts = []
-            done = asyncio.Event()
+            final_messages: list[str] = []
+            delta_buffer:   list[str] = []
+
+            def on_event(event):
+                # Prefer the final (non-delta) AssistantMessageData for reliability;
+                # fall back to accumulated deltas if no final message arrives.
+                data = event.data
+                if isinstance(data, AssistantMessageData):
+                    if data.content:
+                        final_messages.append(data.content)
+                elif isinstance(data, AssistantMessageDeltaData):
+                    if data.delta_content:
+                        delta_buffer.append(data.delta_content)
 
             async with await client.create_session(
                 on_permission_request=permission_handler,
                 model=MODEL,
+                streaming=STREAMING,
                 skill_directories=[SKILL_DIR],
                 infinite_sessions={"enabled": False},
             ) as session:
-
-                def on_event(event):
-                    t = event.type.value
-                    if t == "assistant.message":
-                        content = getattr(event.data, "content", "")
-                        if content:
-                            response_parts.append(content)
-                    elif t in ("session.idle", "session.error", "session.shutdown"):
-                        done.set()
-
                 session.on(on_event)
-                await session.send(prompt)
-                await asyncio.wait_for(done.wait(), timeout=180)
+                # send_and_wait returns when the session becomes idle
+                await asyncio.wait_for(session.send_and_wait(prompt), timeout=240)
 
-            full = "\n".join(response_parts).strip()
+            full = "\n".join(final_messages).strip() or "".join(delta_buffer).strip()
             if not full:
-                raise ValueError("Empty response")
+                raise ValueError("Empty response from model")
 
             result = parse_json(full)
             result["research_error"] = None
@@ -252,7 +262,6 @@ def save_excel(df: pd.DataFrame) -> None:
             if col not in input_cols:
                 cell.fill = PatternFill("solid", fgColor="E6F1FB")
 
-            # Colour classification column
             if col == "classification" and cell.value:
                 v = str(cell.value).upper()
                 if v == "INCLUDE":
@@ -303,9 +312,10 @@ async def run() -> None:
     log.info("Context isolation: infinite_sessions disabled per row")
     log.info("=" * 60)
 
-    sem = asyncio.Semaphore(CONCURRENCY)
-
-    async with CopilotClient() as client:
+    client = CopilotClient()
+    await client.start()
+    try:
+        sem = asyncio.Semaphore(CONCURRENCY)
 
         async def process(idx: int) -> None:
             name     = str(df.iloc[idx].get(COL_NAME,      "")).strip()
@@ -335,6 +345,8 @@ async def run() -> None:
             )
 
         await asyncio.gather(*[process(i) for i in range(total)])
+    finally:
+        await client.stop()
 
     # Merge results back
     for f in OUTPUT_FIELDS:
